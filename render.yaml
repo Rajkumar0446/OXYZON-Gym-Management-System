@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: oxyzon-gym
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DB_PATH
+        value: /var/data/gym.db
+    disk:
+      name: oxyzon-gym-data
+      mountPath: /var/data
+      sizeGB: 1

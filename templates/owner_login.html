@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Owner Login | OXYZON GYM{% endblock %}{% block content %}
+<div class="auth"><form class="form-card" method="post"><p class="eyebrow">OWNER ACCESS</p><h1>Owner Login</h1>
+<label>Email<input type="email" name="email" required></label><label>Password<input type="password" name="password" required></label>
+<button class="btn primary full">Login to My Gym</button><p>New gym owner? <a href="{{ url_for('owner_register') }}">Register your gym</a></p></form></div>{% endblock %}

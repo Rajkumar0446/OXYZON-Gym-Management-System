@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Register | OXYZON GYM{% endblock %}
+{% block content %}
+<div class="auth">
+  <form class="form-card" method="post">
+    <p class="eyebrow">JOIN YOUR GYM</p><h1>Member Registration</h1>
+    <label>Gym Join Code<input name="gym_code" required placeholder="Ask your gym owner"></label>
+    <label>Full name<input name="name" required autocomplete="name"></label>
+    <label>Email<input type="email" name="email" required autocomplete="email"></label>
+    <label>Mobile Number<input type="tel" name="mobile" required pattern="[0-9+() -]{8,18}" placeholder="Your mobile number"></label>
+    <label>Age<input type="number" name="age" min="13" max="100" required></label>
+    <label>Password<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+    <button class="btn primary full">Submit Registration</button>
+    <p class="muted">Your account will be available after the gym owner approves your request.</p>
+    <p>Already registered? <a href="{{ url_for('login') }}">Login</a></p>
+  </form>
+</div>
+{% endblock %}

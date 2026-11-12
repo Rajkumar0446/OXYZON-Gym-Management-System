@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Admin | OXYZON GYM{% endblock %}
+{% block content %}
+<section class="dashboard">
+  <div class="dash-top"><div><p class="eyebrow">OWNER CONTROL CENTER</p><h1>{{ gym["name"] if gym else "Gym Management" }}</h1><p>Manage your members, attendance, payments, trainers and progress.</p><p><b>Member Join Code:</b> {{ gym["join_code"] if gym else "—" }} <small>Share this code with your members when they register.</small></p></div><a class="btn ghost" href="{{ url_for('logout') }}">Logout</a></div>
+
+  <div class="stats admin-stats">
+    <div><small>TOTAL MEMBERS</small><strong>{{ stats.members }}</strong><span>Registered members</span></div>
+    <div><small>ACTIVE MEMBERS</small><strong>{{ stats.active }}</strong><span>Current memberships</span></div>
+    <div><small>TRAINERS</small><strong>{{ stats.trainers }}</strong><span>Assigned & available</span></div>
+    <div><small>TODAY PRESENT</small><strong>{{ stats.attendance }}</strong><span>Attendance records</span></div>
+    <div><small>TOTAL REVENUE</small><strong>₹{{ "%.2f"|format(stats.revenue) }}</strong><span>Recorded payments</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="section-title-row"><div><h2>🕒 New Member Requests ({{ pending_members|length }})</h2><p class="muted">Approve a member before they can access their dashboard.</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Age</th><th>Requested</th><th>Action</th></tr></thead><tbody>
+    {% for m in pending_members %}<tr><td><b>{{ m['name'] }}</b></td><td>{{ m['email'] }}</td><td>{{ m['mobile'] or '—' }}</td><td>{{ m['age'] or '—' }}</td><td>{{ m['created_at'][:10] }}</td><td class="action-row"><form method="post" action="{{ url_for('approve_member', user_id=m['id']) }}"><button class="btn small primary">Approve</button></form><form method="post" action="{{ url_for('reject_member', user_id=m['id']) }}" onsubmit="return confirm('Reject this registration?')"><button class="danger">Reject</button></form></td></tr>
+    {% else %}<tr><td colspan="6">No pending registration requests.</td></tr>{% endfor %}</tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <div class="section-title-row"><div><h2>Members</h2><p class="muted">Search, filter, edit and manage member records.</p></div></div>
+    <form class="filter-bar" method="get" action="{{ url_for('admin') }}">
+      <input name="q" value="{{ q }}" placeholder="Search name, email or member ID">
+      <select name="status"><option value="all" {% if status=='all' %}selected{% endif %}>All membership status</option><option value="active" {% if status=='active' %}selected{% endif %}>Active</option><option value="expired" {% if status=='expired' %}selected{% endif %}>Expired / No plan</option></select>
+      <button class="btn primary">Search</button><a class="btn ghost" href="{{ url_for('admin') }}">Clear</a>
+    </form>
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>Member</th><th>Plan</th><th>Trainer</th><th>Attendance</th><th>Paid</th><th>Weight</th><th>End date</th><th>PDF</th><th>Actions</th></tr></thead>
+    <tbody>{% for u in users %}<tr>
+      <td>#{{ u['id'] }}</td><td><b>{{ u['name'] }}</b><small>{{ u['email'] }}</small></td><td>{{ u['plan'] or '—' }}</td><td>
+        <div class="trainer-cell"><b>{{ u['trainer_name'] or 'Not assigned' }}</b>
+        <form method="post" action="{{ url_for('assign_trainer', user_id=u['id']) }}" class="assign-trainer-form">
+          <select name="trainer_id" aria-label="Assign trainer to {{ u['name'] }}">
+            <option value="">Not assigned</option>
+            {% for t in trainers %}<option value="{{ t['id'] }}" {% if u['trainer_id']==t['id'] %}selected{% endif %}>{{ t['name'] }}</option>{% endfor %}
+          </select>
+          <button class="btn small primary" type="submit">Assign</button>
+        </form></div>
+      </td><td>{{ u['present_count'] }}</td><td>₹{{ "%.2f"|format(u['total_paid']) }}</td><td>{{ u['latest_weight'] or '—' }}</td><td>{{ u['end_date'] or '—' }}</td>
+      <td><a class="btn small" href="{{ url_for('member_pdf', user_id=u['id']) }}">PDF</a></td><td class="action-row"><form method="post" action="{{ url_for('assign_membership', user_id=u['id']) }}"><select name="plan" aria-label="Assign membership plan"><option value="">Assign plan</option><option>Basic</option><option>Standard</option><option>Premium</option></select><button class="btn small primary">Set</button></form><a class="btn small" href="{{ url_for('edit_member', user_id=u['id']) }}">Edit</a><form method="post" action="{{ url_for('delete_user', user_id=u['id']) }}" onsubmit="return confirm('Delete this member and all related records?')"><button class="danger">Delete</button></form></td>
+    </tr>{% else %}<tr><td colspan="10">No members found.</td></tr>{% endfor %}</tbody></table></div>
+  </div>
+
+  <div class="dashboard-grid admin-forms">
+    <div class="panel"><h2>➕ Add Trainer</h2><form method="post" action="{{ url_for('add_trainer') }}" class="form-grid"><input name="name" placeholder="Trainer name" required><input name="email" type="email" placeholder="Email"><input name="phone" placeholder="Phone"><input name="specialization" placeholder="Specialization"><button class="btn primary">Add Trainer</button></form></div>
+    <div class="panel"><h2>👥 Trainers</h2>{% for t in trainers %}<div class="record-row"><div><b>{{ t['name'] }}</b><small>{{ t['specialization'] or 'General Fitness' }} · {{ t['phone'] or 'No phone' }}</small></div><form method="post" action="{{ url_for('delete_trainer', trainer_id=t['id']) }}" onsubmit="return confirm('Delete trainer? Members will become unassigned.')"><button class="danger">Delete</button></form></div>{% else %}<p class="muted">No trainers added yet.</p>{% endfor %}</div>
+  </div>
+
+  <div class="dashboard-grid admin-forms">
+    <div class="panel"><h2>📅 Mark Attendance</h2><form method="post" action="{{ url_for('add_attendance') }}" class="form-grid"><select name="user_id" required><option value="">Select member</option>{% for u in users %}<option value="{{ u['id'] }}">#{{ u['id'] }} — {{ u['name'] }}</option>{% endfor %}</select><input name="attendance_date" type="date"><select name="status"><option>Present</option><option>Absent</option><option>Late</option></select><button class="btn primary">Save Attendance</button></form></div>
+    <div class="panel"><h2>💳 Record Payment</h2><form method="post" action="{{ url_for('add_payment') }}" class="form-grid"><select name="user_id" required><option value="">Select member</option>{% for u in users %}<option value="{{ u['id'] }}">#{{ u['id'] }} — {{ u['name'] }}</option>{% endfor %}</select><input name="amount" type="number" step="0.01" placeholder="Amount ₹" required><input name="payment_date" type="date"><select name="method"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank Transfer</option></select><input name="note" placeholder="Note (optional)"><button class="btn primary">Save Payment</button></form></div>
+  </div>
+
+  <div class="panel"><h2>📈 Record Member Progress</h2><form method="post" action="{{ url_for('add_progress') }}" class="form-grid progress-form"><select name="user_id" required><option value="">Select member</option>{% for u in users %}<option value="{{ u['id'] }}">#{{ u['id'] }} — {{ u['name'] }}</option>{% endfor %}</select><input name="record_date" type="date"><input name="weight" type="number" step="0.1" placeholder="Weight kg"><input name="body_fat" type="number" step="0.1" placeholder="Body fat %"><input name="note" placeholder="Progress note"><button class="btn primary">Save Progress</button></form></div>
+
+  <div class="panel"><h2>What the admin can manage</h2><div class="feature-grid mini"><div>👥<strong>Members</strong><small>Search, filter, edit and delete</small></div><div>📅<strong>Attendance</strong><small>Present, absent and late records</small></div><div>💳<strong>Payments</strong><small>Fees, method and payment history</small></div><div>🏋️<strong>Trainers</strong><small>Add, assign and remove trainers</small></div><div>📈<strong>Progress</strong><small>Weight and body-fat tracking</small></div><div>📊<strong>Dashboard</strong><small>Members, revenue and attendance stats</small></div></div></div>
+</section>
+{% endblock %}

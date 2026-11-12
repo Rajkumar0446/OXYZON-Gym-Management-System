@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Owner Registration | OXYZON GYM{% endblock %}{% block content %}
+<div class="auth"><form class="form-card" method="post"><p class="eyebrow">CREATE YOUR GYM</p><h1>Owner Registration</h1>
+<label>Gym Name<input name="gym_name" required maxlength="100" placeholder="e.g. Power Fitness Gym"></label>
+<label>Owner Name<input name="name" required></label><label>Email<input type="email" name="email" required></label>
+<label>Create Password<input type="password" name="password" minlength="8" required></label>
+<button class="btn primary full">Create Gym Account</button><p>Already registered? <a href="{{ url_for('owner_login') }}">Owner Login</a></p></form></div>{% endblock %}

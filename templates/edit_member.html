@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Edit Member | OXYZON GYM{% endblock %}
+{% block content %}
+<section class="auth"><div class="form-card"><p class="eyebrow">MEMBER MANAGEMENT</p><h1>Edit Member</h1><form method="post"><label>Name<input name="name" value="{{ user['name'] }}" required></label><label>Email<input name="email" type="email" value="{{ user['email'] }}" required></label><label>Trainer<select name="trainer_id"><option value="">Not assigned</option>{% for t in trainers %}<option value="{{ t['id'] }}" {% if user['trainer_id']==t['id'] %}selected{% endif %}>{{ t['name'] }}{% if t['specialization'] %} — {{ t['specialization'] }}{% endif %}</option>{% endfor %}</select></label><button class="btn primary full">Save Changes</button></form><p><a href="{{ url_for('admin') }}">← Back to Admin</a></p></div></section>
+{% endblock %}

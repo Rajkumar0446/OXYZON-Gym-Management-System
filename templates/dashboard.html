@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | OXYZON GYM{% endblock %}
+{% block content %}
+<section class="dashboard">
+  <div class="dash-top"><div><p class="eyebrow">MEMBER DASHBOARD</p><h1>Hi, {{ user["name"] }} 👋</h1><p>{{ user["email"] }}</p></div><a class="btn ghost" href="{{ url_for('logout') }}">Logout</a></div>
+
+  <div class="stats">
+    <div><small>MEMBERSHIP</small><strong>{{ membership["plan"] if membership else "Not active" }}</strong><span>{{ membership["end_date"] if membership else "Choose a plan" }}</span></div>
+    <div><small>ATTENDANCE</small><strong>{{ attendance_count }}</strong><span>Present records</span></div>
+    <div><small>TOTAL PAID</small><strong>₹{{ "%.0f"|format(total_paid) }}</strong><span>Recorded fees</span></div>
+    <div><small>TRAINER</small><strong>{{ user["trainer_name"] or "Not assigned" }}</strong><span>{{ user["trainer_specialization"] or "Ask admin to assign" }}</span></div>
+    <div><small>ROLE</small><strong>{{ user["role"]|title }}</strong><span>Account active</span></div>
+    <div><small>BMI</small><strong id="dash-bmi">—</strong><span>Use calculator below</span></div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="panel"><h2>Membership</h2><form method="post" action="{{ url_for('membership') }}" class="inline-form"><select name="plan"><option>Basic</option><option>Standard</option><option>Premium</option></select><button class="btn primary">Add / Renew</button></form>{% if membership %}<p>Current: <b>{{ membership["plan"] }}</b> · {{ membership["start_date"] }} → {{ membership["end_date"] }}</p>{% endif %}</div>
+    <div class="panel"><h2>BMI Calculator</h2><div class="bmi-row"><input id="height" type="number" placeholder="Height (cm)"><input id="weight" type="number" placeholder="Weight (kg)"><button id="bmiBtn" class="btn primary">Calculate</button></div><div id="bmiResult" class="result">Enter your details.</div></div>
+    <div class="panel"><h2>Workout Planner</h2><select id="workoutGoal"><option value="fitness">General Fitness</option><option value="muscle">Muscle Gain</option><option value="weightloss">Weight Loss</option></select><button id="workoutBtn" class="btn primary top-gap">Generate & Save</button><div id="workoutResult" class="result">Choose a goal.</div>{% if workouts %}<div class="saved-list">{% for w in workouts %}<div><b>{{ w["day"] }} — {{ w["title"] }}</b><small>{{ w["details"] }}</small></div>{% endfor %}</div>{% endif %}</div>
+    <div class="panel"><h2>Diet Planner</h2><select id="dietGoal"><option value="fitness">Fitness</option><option value="muscle">Muscle Gain</option><option value="weightloss">Weight Loss</option></select><button id="dietBtn" class="btn primary top-gap">Generate & Save</button><div id="dietResult" class="result">Choose a goal.</div>{% if diet %}<p><b>{{ diet["calories"] }} kcal/day</b></p><p>{{ diet["meals"] }}</p>{% endif %}</div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="panel"><h2>📅 Recent Attendance</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>{% for a in attendance %}<tr><td>{{ a['attendance_date'] }}</td><td><span class="badge">{{ a['status'] }}</span></td></tr>{% else %}<tr><td colspan="2">No attendance records yet.</td></tr>{% endfor %}</tbody></table></div></div>
+    <div class="panel"><h2>💳 Payment History</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Receipt</th></tr></thead><tbody>{% for p in payments %}<tr><td>{{ p['payment_date'] }}</td><td>₹{{ "%.2f"|format(p['amount']) }}</td><td>{{ p['method'] }}</td><td><a class="btn small" href="{{ url_for('payment_pdf', payment_id=p['id']) }}">PDF</a></td></tr>{% else %}<tr><td colspan="4">No payment records yet.</td></tr>{% endfor %}</tbody></table></div></div>
+  </div>
+
+  <div class="panel"><h2>📈 Member Progress</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Weight (kg)</th><th>Body Fat %</th><th>Note</th></tr></thead><tbody>{% for p in progress %}<tr><td>{{ p['record_date'] }}</td><td>{{ p['weight'] or '—' }}</td><td>{{ p['body_fat'] or '—' }}</td><td>{{ p['note'] or '—' }}</td></tr>{% else %}<tr><td colspan="4">No progress records yet. Ask your trainer/admin to add one.</td></tr>{% endfor %}</tbody></table></div></div>
+</section>
+{% endblock %}
